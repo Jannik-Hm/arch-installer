@@ -45,7 +45,7 @@ fallback_options="-S autodetect"
 EOF
 }
 
-_SECURITY_PARAMS='efi=disable_early_pci_dma iommu=force intel_iommu=on amd_iommu=on iommu.passthrough=0 iommu.strict=1 page_alloc.shuffle=1 slab_nomerge randomize_kstack_offset=1 debugfs=off vsyscall=none lockdown=confidentiality sysctl.kernel.yama.ptrace_scope=3'
+_SECURITY_PARAMS='iommu=force intel_iommu=on amd_iommu=on iommu.passthrough=0 iommu.strict=1 page_alloc.shuffle=1 slab_nomerge randomize_kstack_offset=1 debugfs=off vsyscall=none lockdown=confidentiality sysctl.kernel.yama.ptrace_scope=3'
 
 boot_build_cmdline_plain() {
     local root_uuid="$1"
