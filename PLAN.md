@@ -12,13 +12,13 @@
 | `aur-packages.sh` | Installs AUR pkgs | **Bugs:** runs bare `yay` first; needs sudo password interactively |
 | `packages.sh` | `pacman -Syu` from `package-list.txt` | |
 | `services.sh` | `systemctl enable …` list | Services hard-coded, drift from package list |
-| `dotfiles.sh` | `gh auth login` (interactive mid-install), clones dotfiles, runs setup | Interactive in the middle of the flow |
+| `dotfiles.sh` | `gh auth login` (interactive mid-install), clones dotfiles, runs setup | Was interactive mid-install; now removed |
 | `special-stuff/surface-kernel.sh` | Optional Surface kernel | **Bugs:** `grub-mkconfig` under a UKI system; missing `sudo`; `echo << EOF` is malformed |
 
 ### Issues
-1. **Interactive prompts scattered throughout** — hostname, encryption UUID via `vim`, root passwd, user passwd, `gh auth login`. Cannot run unattended.
+1. **Interactive prompts scattered throughout** — hostname, encryption UUID via `vim`, root passwd, user passwd. Cannot run unattended.
 2. **No partitioning / encryption setup** — user must hand-craft disks, cryptsetup, LVM before `bootstrap.sh`.
-3. **AUR install is not unattended** — `yay` invoked bare; `sudo` prompts interactively; `gh auth login` interactive.
+3. **AUR install is not unattended** — `yay` invoked bare; `sudo` prompts interactively.
 4. **Secure boot always enrolled** — `sbctl enroll-keys -m` always runs.
 5. **Fragile encryption UX** — opens `vim` on `ls -lah` output so user copies a UUID into `/etc/kernel/cmdline` by hand.
 6. **Separate repo dependency** — `bootstrap.sh` clones `LightJack05/setup-files` instead of self-hosting.
@@ -31,7 +31,7 @@
 1. Unify + clean up scripts, make the process reliable.
 2. Move **all** interaction to a single up-front phase; everything after runs unattended.
 3. Add basic flare + a TUI at the start.
-4. Unattended AUR install (yay + packages, including initial `gh auth login` captured up front).
+4. Unattended AUR install (yay + packages).
 5. Keep opinionated choices as **defaults** — user can "hit next" to accept, or override in the TUI.
 6. Split optional components into opt-in prompts (Secure Boot, Surface kernel, …).
 7. Partitioning + full-disk-encryption as **install-time** options (all use zRAM as primary swap and a swapfile on root for secondary swap + hibernation):
@@ -60,7 +60,7 @@ arch-installer/
 │   └── secureboot.sh              # sbctl create/enroll/sign
 ├── stages/
 │   ├── 00-precheck.sh             # UEFI? net? clock sync? pacman-key populated? RAM free?
-│   ├── 10-tui.sh                  # gather ALL answers up front (incl. gh auth if opted in)
+│   ├── 10-tui.sh                  # gather ALL answers up front
 │   ├── 20-disk.sh                 # partition + encrypt + mkfs + mount  (skipped in scheme D)
 │   ├── 25-swap.sh                 # zram-generator config + swapfile + resume_offset → /tmp/installer.env
 │   ├── 30-pacstrap.sh             # base + kernel + ucode + zram-generator + installer-required pkgs
@@ -71,7 +71,7 @@ arch-installer/
 │   ├── 80-packages.sh             # pacman install from config/packages.txt
 │   ├── 85-aur.sh                  # build yay + install AUR unattended (NOPASSWD dropin)
 │   ├── 90-services.sh             # enable services from config/services.txt
-│   ├── 95-dotfiles.sh             # use captured gh token, clone dotfiles, run setup
+│   ├── 95-dotfiles.sh             # clone dotfiles repo, run setup script
 │   └── 99-finalize.sh             # remove NOPASSWD dropin, shred secrets, unmount, reboot prompt
 ├── optional/
 │   ├── secure-boot.sh             # opt-in in TUI
@@ -91,7 +91,7 @@ arch-installer/
 [ISO boot] → install.sh
   ├─ 00-precheck
   ├─ iso-bootstrap (pacman -Sy gum + small extras)
-  ├─ 10-tui  ─ gather answers ─→ /tmp/installer.env   (incl. optional gh token)
+  ├─ 10-tui  ─ gather answers ─→ /tmp/installer.env
   ├─ 20-disk   (destructive — final "are you sure?" before this; skipped for scheme D)
   ├─ 25-swap   (create swapfile on mounted /; record resume_offset)
   ├─ 30-pacstrap
@@ -134,12 +134,12 @@ Reason: `$()` creates a subshell; gum's interactive prompts break in nested subs
 | User password | prompted twice | required |
 | LUKS passphrase | prompted twice | modes B + C |
 | TPM2 PIN | prompted twice | mode C only |
-| Dotfiles (opt-out) | on | if on: `gh auth login` now, captured for stage 95 |
+| Dotfiles (opt-out) | on | if on: public repo cloned at stage 95 |
 | Secure Boot (opt-in) | off | |
 | Surface kernel (opt-in) | off | |
 | Extra optional scripts | none | checklist from `optional/` |
 
-All answers written to `/tmp/installer.env`. `gh` token (if captured) in `/tmp/installer.ghtoken` mode `0600`; moved into the chroot at stage 40; used at stage 95; shredded at stage 99.
+All answers written to `/tmp/installer.env` (mode `0600`); shredded by stage 99.
 
 ### Partitioning
 - GPT, UEFI only.
@@ -217,14 +217,9 @@ p2 LUKS2 "cryptroot"    rest
 
 ### Dotfiles (opt-out, seamless)
 - TUI checkbox defaults **on**.
-- If on: run `gh auth login` inside stage 10 while user is at the keyboard. Capture the token via `gh auth token` into `/tmp/installer.ghtoken` (`0600`).
-- Stage 40 moves the token into `/mnt/root/.installer-ghtoken`.
 - Stage 95 inside chroot:
-  - Ensures `gh` + `git` installed.
-  - As the user: `gh auth login --with-token < …` + `gh auth setup-git`.
-  - `git clone https://github.com/LightJack05/dotfiles --recursive` as the user.
+  - As the user: `git clone <DOTFILES_REPO> --recursive` (public repo, no auth required).
   - Run `setup-complete.sh`.
-- Stage 99 shreds both token files.
 
 ### Secure Boot (optional)
 - If chosen: `sbctl create-keys`, `sbctl enroll-keys -m`, `sbctl sign -s` for UKI + fallback.
@@ -275,7 +270,7 @@ p2 LUKS2 "cryptroot"    rest
 3. **Phase 2 — Disk + FS + swap stages** for schemes A / B / C / D × ext4 / btrfs; VM-test each combo. Includes zram-generator config + swapfile + `resume_offset` calc.
 4. **Phase 3 — Pacstrap + chroot glue**, rewrite system-config stage.
 5. **Phase 4 — Boot stage** (mkinitcpio preset, UKI, cmdline builder w/ `resume=` + `resume_offset=`, optional sbctl).
-6. **Phase 5 — Users + packages + AUR (unattended) + services + dotfiles** (with gh token handoff).
+6. **Phase 5 — Users + packages + AUR (unattended) + services + dotfiles**.
 7. **Phase 6 — Optional scripts** (secure boot, Surface kernel rewritten for UKI) wired into TUI.
 8. **Phase 7 — VM dry-runs** across the matrix.
 9. **Phase 8 — README + QUICKSTART**.

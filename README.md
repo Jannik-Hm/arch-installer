@@ -31,7 +31,7 @@ Answer the TUI once. Everything after the final confirmation runs unattended.
 - **Kernel lockdown** (`lockdown=confidentiality` + IOMMU enforcement) on by default, opt-out in TUI.
 - **Secure Boot** via sbctl — opt-in, requires firmware in Setup Mode.
 - **Unattended AUR** via yay with a temporary NOPASSWD sudoers dropin (removed at finalize).
-- **Dotfiles** opt-out: `gh auth login` runs up front so the first boot is seamless.
+- **Dotfiles** opt-out: public repo cloned at install time so the first boot is seamless.
 - **170+ curated pacman packages** + a small AUR list.
 - **Systemd services** enabled at install time (NetworkManager, pipewire, ly, libvirtd, ufw, etc.).
 
