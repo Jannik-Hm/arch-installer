@@ -161,9 +161,6 @@ usb_modeswitch
 vim
 virt-manager
 virt-viewer
-virtualbox
-virtualbox-guest-iso
-virtualbox-host-modules-arch
 vulkan-radeon
 vulkan-tools
 waybar
