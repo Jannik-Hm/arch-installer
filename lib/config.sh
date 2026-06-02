@@ -15,7 +15,6 @@ fi
 readonly __INSTALLER_CONFIG_SOURCED=1
 
 INSTALLER_ENV="${INSTALLER_ENV:-/tmp/installer.env}"
-INSTALLER_GH_TOKEN_FILE="${INSTALLER_GH_TOKEN_FILE:-/tmp/installer.ghtoken}"
 
 cfg_init() {
     # Create the env file with mode 0600 if it doesn't exist.
@@ -74,8 +73,7 @@ cfg_require() {
 cfg_shred() {
     # Shred all files holding secrets. Called by stage 99.
     local f
-    for f in "${INSTALLER_ENV}" "${INSTALLER_GH_TOKEN_FILE}" \
-             /mnt/root/.installer-ghtoken /root/.installer-ghtoken; do
+    for f in "${INSTALLER_ENV}"; do
         [[ -e "${f}" ]] || continue
         shred -u "${f}" 2>/dev/null || rm -f "${f}"
     done

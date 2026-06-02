@@ -23,7 +23,6 @@
 #  18.  LUKS passphrase (twice)                  — B+C+D
 #  19.  TPM2 PIN (twice)                          — D only
 #  20.  dotfiles opt-out (default on)
-#        └─ if on: run `gh auth login`, capture token → /tmp/installer.ghtoken (0600)
 #  21.  secure boot opt-in (warn if not in Setup Mode)
 #  22.  kernel lockdown opt-out (default on)
 #  23.  additional optional scripts (checklist from optional/)
@@ -37,7 +36,6 @@
 # never persists. LUKS passphrase and TPM PIN are written in plaintext
 # because stage 20 must feed them directly to cryptsetup/tpm2 tooling;
 # /tmp/installer.env is mode 0600.
-# GH token lives in its own 0600 file, not the env file.
 
 set -Eeuo pipefail
 # shellcheck source=../lib/common.sh
@@ -440,24 +438,10 @@ main() {
     # --------------------------------------------------------------------------
     tui_step 20 "${TOTAL_STEPS}" "Dotfiles"
 
-    if tui_confirm "Dotfiles" "Set up dotfiles automatically? (gh auth login will run now — default: yes)" "yes"; then
+    if tui_confirm "Dotfiles" "Set up dotfiles automatically? (default: yes)" "yes"; then
         cfg_set DOTFILES_ENABLED 1
         cfg_set DOTFILES_REPO "${DOTFILES_REPO}"
         cfg_set DOTFILES_SETUP_SCRIPT "${DOTFILES_SETUP_SCRIPT}"
-        log_info "running gh auth login..."
-        if ! gh auth login </dev/tty >/dev/tty 2>/dev/tty; then
-            tui_message "GitHub Auth Failed" \
-                "gh auth login did not complete successfully.\nDotfiles setup will be skipped."
-            cfg_set DOTFILES_ENABLED 0
-        else
-            if gh auth token > "${INSTALLER_GH_TOKEN_FILE}" 2>/dev/null; then
-                chmod 0600 "${INSTALLER_GH_TOKEN_FILE}"
-            else
-                tui_message "Token Error" \
-                    "Could not retrieve GitHub token. Dotfiles setup will be skipped."
-                cfg_set DOTFILES_ENABLED 0
-            fi
-        fi
     else
         cfg_set DOTFILES_ENABLED 0
     fi

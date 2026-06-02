@@ -9,7 +9,6 @@
 #     gum        — TUI
 #   Required (warn + continue on failure):
 #     sbctl      — secure boot key management (status check in TUI step 19)
-#     gh         — GitHub CLI (dotfiles auth in TUI step 18)
 #   Cosmetic (silently skipped on failure):
 #     figlet, lolcat — ASCII splash
 #
@@ -32,7 +31,7 @@ iso_bootstrap_all() {
     # ------------------------------------------------------------------
     # Required live-ISO tools (warn on failure, never die)
     # ------------------------------------------------------------------
-    local required_pkgs=(sbctl github-cli)
+    local required_pkgs=(sbctl)
     local pkg
     for pkg in "${required_pkgs[@]}"; do
         if pacman -S --noconfirm --needed "${pkg}" 2>/dev/null; then

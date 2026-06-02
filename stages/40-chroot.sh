@@ -30,13 +30,7 @@ main() {
     install -m 0600 "$INSTALLER_ENV" "${dest}/installer.env"
     log_info "installed env file to ${dest}/installer.env"
 
-    # 3. Move the GH token if present
-    if [[ -s "$INSTALLER_GH_TOKEN_FILE" ]]; then
-        install -m 0600 "$INSTALLER_GH_TOKEN_FILE" "${target}/root/.installer-ghtoken"
-        log_info "installed GH token to ${target}/root/.installer-ghtoken"
-    fi
-
-    # 4. Set up log file in the target
+    # 3. Set up log file in the target
     mkdir -p "${target}/var/log"
     cp "$INSTALLER_LOG" "${target}/var/log/installer.log" 2>/dev/null || true
     log_info "log file available in chroot at /var/log/installer.log"
