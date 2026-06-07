@@ -75,7 +75,7 @@ Defaults live in `config/defaults.env`. The TUI overrides all of them interactiv
 | `INSTALL_MODE` | `A` |
 | `FILESYSTEM` | `ext4` |
 | `KERNEL_LOCKDOWN` | `1` (on) |
-| `SECURE_BOOT` | `0` (off) |
+| `SECURE_BOOT` | `1` (on) |
 | `DOTFILES_ENABLED` | `1` (on) |
 
 ## License
