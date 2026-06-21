@@ -15,6 +15,7 @@ bluez-utils
 breeze
 breeze-gtk
 brightnessctl
+calf
 chromium
 chrono-date
 cifs-utils
