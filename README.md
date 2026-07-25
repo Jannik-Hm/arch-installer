@@ -1,5 +1,7 @@
 # arch-installer
 
+<img width="300" height="300" alt="lightjack05_seal_of_quality" src="https://github.com/user-attachments/assets/584b7245-18c1-4602-b516-8349b7a21d8c" />
+
 Opinionated, single-entrypoint Arch Linux installer. TUI up front, unattended everywhere after.
 
 > **Note:** The code in this repository is largely AI-generated (Claude Code / Anthropic). Review carefully before running on real hardware.
