@@ -5,7 +5,6 @@ NetworkManager.service
 avahi-daemon.service
 bluetooth.service
 cups.service
-illuminanced.service
 libvirtd.service
 ly@tty2.service
 power-profiles-daemon.service

@@ -2,4 +2,3 @@ downgrade
 qt6ct-kde
 wofi-emoji
 xwaylandvideobridge
-claude-code
